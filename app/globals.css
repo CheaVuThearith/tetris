@@ -31,3 +31,7 @@ body {
     text-wrap: balance;
   }
 }
+
+.blocked {
+  @apply bg-red-600 shadow-inner shadow-white;
+}

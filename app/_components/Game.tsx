@@ -1,80 +1,145 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-type Props = {};
-
-const Game = (props: Props) => {
-  const handleCanvasUpdate = () => {
-    setActive((a) => [testBlock.pos]);
-  };
-  const valueLimit = (value:number) => {
-    return Math.min(Math.max(value, 0), 199);
-  };
+const Game = () => {
+  type directionType = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
+  enum directionalValues {
+    ArrowUp = -10,
+    ArrowDown = +10,
+    ArrowLeft = -1,
+    ArrowRight = +1,
+  }
   class block {
-    pos: number;
+    pos: number[];
     constructor() {
-      this.pos = 0;
+      this.pos = [12, 13, 2];
     }
-    move = (direction: string) => {
-      switch (direction) {
-        case "ArrowUp":
-          this.pos = valueLimit(this.pos - 10);
-          handleCanvasUpdate();
-          break;
-        case "ArrowDown":
-          this.pos = valueLimit(this.pos + 10);
-          handleCanvasUpdate();
-          break;
-        case "ArrowLeft":
-          this.pos = valueLimit(this.pos - 1);
-          handleCanvasUpdate();
-          break;
-        case "ArrowRight":
-          this.pos = valueLimit(this.pos + 1);
-          handleCanvasUpdate();
-          break;
-        case "Enter":
-          this.pos = parseInt("19" + this.pos.toString().slice(-1));
-          handleCanvasUpdate();
-          break;
-        default:
-          break;
-      }
+    move = (direction: directionType) => {
+      this.pos = this.pos.map(
+        (b) => b + directionalValues[direction],
+        direction,
+      );
     };
   }
 
-  const testBlock = React.useRef(new block()).current;
+  const activeBlockRef = useRef(new block());
+  const draw = () => {
+    activeBlockRef.current.pos.forEach((element) =>
+      emptyBlocksListRef.current[element].classList.add("blocked"),
+    );
+  };
+
+  const undraw = () => {
+    activeBlockRef.current.pos.forEach((element) =>
+      emptyBlocksListRef.current[element].classList.remove("blocked"),
+    );
+  };
+  const sliceDigitBasedOnDirection = (el: number, direction: directionType) =>
+    direction === "ArrowRight" || direction === "ArrowLeft"
+      ? parseInt(el.toString().slice(-1))
+      : parseInt(el.toString().slice(0, -1));
+  const minOrMaxBasedOnDirection = (
+    direction: directionType,
+    ...values: number[]
+  ) => {
+    return direction === "ArrowUp" || direction === "ArrowLeft"
+      ? Math.min(...values)
+      : Math.max(...values);
+  };
+  const doesNextBlockNotExist = (direction: directionType) => {
+    const latestBlockFirstDigits: number = minOrMaxBasedOnDirection(
+      direction,
+      ...activeBlockRef.current.pos.map((el) => {
+        const digit = sliceDigitBasedOnDirection(el, direction);
+        console.log(`digit: ${digit}`);
+        return isNaN(digit) ? 0 : digit;
+      }),
+    );
+    console.log(`LatestBlockFirstDigits: ${latestBlockFirstDigits}`);
+    const latestBlocksList = activeBlockRef.current.pos.filter(
+      (el) =>
+        sliceDigitBasedOnDirection(el, direction) === latestBlockFirstDigits,
+    );
+    console.log(`currentBlockPosition: ${activeBlockRef.current.pos}`);
+    console.log(`latestBlockList: ${latestBlocksList}`);
+    console.log(direction);
+    console.log(`-------------------------------------------------------`);
+
+    try {
+      return latestBlocksList.every((el) => {
+        const nextBlock = el + directionalValues[direction];
+        if (direction === "ArrowLeft" && nextBlock.toString().slice(-1) === "9")
+          return false;
+        else if (
+          direction === "ArrowRight" &&
+          nextBlock.toString().slice(-1) === "0"
+        )
+          return false;
+        else
+          return !emptyBlocksListRef.current[nextBlock].classList.contains(
+            "blocked",
+          );
+      });
+    } catch {
+      return false;
+    }
+  };
+  const createNewBlock = () => {
+    activeBlockRef.current = new block();
+    draw();
+  };
+  const moveBlock = (direction: directionType) => {
+    if (doesNextBlockNotExist(direction)) {
+      undraw();
+      activeBlockRef.current.move(direction);
+      draw();
+    } else {
+      if (direction === "ArrowDown") createNewBlock();
+    }
+  };
+  const handleStart = () => {
+    intervalIdRef.current = setInterval(() => {
+      moveBlock("ArrowDown");
+    }, 1000);
+  };
+  const handleStop = () => {
+    clearInterval(intervalIdRef.current);
+  };
 
   onkeydown = (e) => {
     e.preventDefault();
-    testBlock.move(e.key);
-    console.log(testBlock.pos);
-  };
-
-  const moveBlockDownTillBottom = async () => {
-    while (testBlock.pos <= 190) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      testBlock.move("ArrowDown");
+    if (e.key in directionalValues) {
+      moveBlock(e.key as directionType);
     }
   };
-  useEffect(() => {
-    moveBlockDownTillBottom();
-  }, []);
-
-  const [active, setActive] = useState<number[]>([]);
-  const [canvas, setCanvas] = useState<number[]>([]);
+  const emptyBlocksListRef = useRef<HTMLDivElement[]>([]);
+  const intervalIdRef = useRef<NodeJS.Timeout>();
   return (
-    <div className="flex h-[800px] w-[402px] flex-wrap justify-center border">
-      {Array.from({ length: 200 }).map((_, index) => (
-        <div
-          key={index}
-          className={`aspect-square size-10 border border-[#ffffff75] ${active.includes(index) && "shadow-inner shadow-white"}`}
-          style={{ background: active.includes(index) ? "red" : undefined }}
-        >
-          {index}
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="mr-10 flex border">
+        <button className="px-4 py-2 active:scale-90" onClick={handleStart}>
+          Start
+        </button>
+        <button className="px-4 py-2 active:scale-90" onClick={handleStop}>
+          Stop
+        </button>
+      </div>
+      <div className="flex h-[800px] w-[402px] flex-wrap justify-center border">
+        {Array.from({ length: 200 }).map((_, index) => (
+          <div
+            ref={(el) => {
+              if (el) {
+                emptyBlocksListRef.current[index] = el;
+              }
+            }}
+            key={index}
+            className={`aspect-square size-10 border border-[#ffffff75]`}
+          >
+            {index}
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 
