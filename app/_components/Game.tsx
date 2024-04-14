@@ -12,7 +12,7 @@ const Game = () => {
   class block {
     pos: number[];
     constructor() {
-      this.pos = [12, 13, 2];
+      this.pos = [14, 13, 15, 4];
     }
     move = (direction: directionType) => {
       this.pos = this.pos.map(
@@ -34,70 +34,65 @@ const Game = () => {
       emptyBlocksListRef.current[element].classList.remove("blocked"),
     );
   };
-  const sliceDigitBasedOnDirection = (el: number, direction: directionType) =>
-    direction === "ArrowRight" || direction === "ArrowLeft"
-      ? parseInt(el.toString().slice(-1))
-      : parseInt(el.toString().slice(0, -1));
-  const minOrMaxBasedOnDirection = (
-    direction: directionType,
-    ...values: number[]
-  ) => {
-    return direction === "ArrowUp" || direction === "ArrowLeft"
-      ? Math.min(...values)
-      : Math.max(...values);
-  };
-  const doesNextBlockNotExist = (direction: directionType) => {
-    const latestBlockFirstDigits: number = minOrMaxBasedOnDirection(
-      direction,
-      ...activeBlockRef.current.pos.map((el) => {
-        const digit = sliceDigitBasedOnDirection(el, direction);
-        console.log(`digit: ${digit}`);
-        return isNaN(digit) ? 0 : digit;
-      }),
-    );
-    console.log(`LatestBlockFirstDigits: ${latestBlockFirstDigits}`);
-    const latestBlocksList = activeBlockRef.current.pos.filter(
-      (el) =>
-        sliceDigitBasedOnDirection(el, direction) === latestBlockFirstDigits,
-    );
-    console.log(`currentBlockPosition: ${activeBlockRef.current.pos}`);
-    console.log(`latestBlockList: ${latestBlocksList}`);
-    console.log(direction);
-    console.log(`-------------------------------------------------------`);
-
+  const doesNextBlockExist = (direction: directionType) => {
     try {
-      return latestBlocksList.every((el) => {
+      return activeBlockRef.current.pos.some((el) => {
         const nextBlock = el + directionalValues[direction];
         if (direction === "ArrowLeft" && nextBlock.toString().slice(-1) === "9")
-          return false;
+          return true;
         else if (
           direction === "ArrowRight" &&
           nextBlock.toString().slice(-1) === "0"
         )
-          return false;
+          return true;
         else
-          return !emptyBlocksListRef.current[nextBlock].classList.contains(
-            "blocked",
+          return emptyBlocksListRef.current[nextBlock].classList.contains(
+            "taken",
           );
       });
     } catch {
-      return false;
+      return true;
     }
   };
   const createNewBlock = () => {
     activeBlockRef.current = new block();
     draw();
   };
+  const registerBlock = () => {
+    activeBlockRef.current.pos.forEach((block) => {
+      emptyBlocksListRef.current[block].classList.add("taken");
+    });
+  };
+  const gameOver = () => {
+    if (emptyBlocksListRef.current[4].classList.contains("taken")) {
+      console.log("gameOver");
+      clearInterval(intervalIdRef.current)
+      setScore("Game Over!")
+      onkeydown =  ()=>{}
+    }
+  };
   const moveBlock = (direction: directionType) => {
-    if (doesNextBlockNotExist(direction)) {
+    if (!doesNextBlockExist(direction)) {
       undraw();
       activeBlockRef.current.move(direction);
       draw();
     } else {
-      if (direction === "ArrowDown") createNewBlock();
+      if (direction === "ArrowDown") {
+        registerBlock();
+        createNewBlock();
+        gameOver()
+      }
     }
   };
   const handleStart = () => {
+    //add controls
+    onkeydown = (e) => {
+      e.preventDefault();
+      if (e.key in directionalValues) {
+        moveBlock(e.key as directionType);
+      }
+    };
+    draw();
     intervalIdRef.current = setInterval(() => {
       moveBlock("ArrowDown");
     }, 1000);
@@ -105,13 +100,7 @@ const Game = () => {
   const handleStop = () => {
     clearInterval(intervalIdRef.current);
   };
-
-  onkeydown = (e) => {
-    e.preventDefault();
-    if (e.key in directionalValues) {
-      moveBlock(e.key as directionType);
-    }
-  };
+const [score,setScore]= useState(0)
   const emptyBlocksListRef = useRef<HTMLDivElement[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout>();
   return (
@@ -138,6 +127,9 @@ const Game = () => {
             {index}
           </div>
         ))}
+      </div>
+      <div className=" ml-10">
+        <h1 className="text-xl">Score: {score}</h1>
       </div>
     </>
   );
