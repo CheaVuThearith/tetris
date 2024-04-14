@@ -66,9 +66,9 @@ const Game = () => {
   const gameOver = () => {
     if (emptyBlocksListRef.current[4].classList.contains("taken")) {
       console.log("gameOver");
-      clearInterval(intervalIdRef.current)
-      setScore("Game Over!")
-      onkeydown =  ()=>{}
+      clearInterval(intervalIdRef.current);
+      setScore("Game Over!");
+      onkeydown = () => {};
     }
   };
   const moveBlock = (direction: directionType) => {
@@ -80,9 +80,18 @@ const Game = () => {
       if (direction === "ArrowDown") {
         registerBlock();
         createNewBlock();
-        gameOver()
+        gameOver();
       }
     }
+  };
+  const handleRestart = () => {
+    handleStop()
+    emptyBlocksListRef.current.forEach((block) => {
+      block.classList.remove("taken", "blocked");
+    });
+    setScore(0);
+    createNewBlock();
+    handleStart()
   };
   const handleStart = () => {
     //add controls
@@ -100,17 +109,20 @@ const Game = () => {
   const handleStop = () => {
     clearInterval(intervalIdRef.current);
   };
-const [score,setScore]= useState(0)
+  const [score, setScore] = useState(0);
   const emptyBlocksListRef = useRef<HTMLDivElement[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout>();
   return (
     <>
-      <div className="mr-10 flex border">
+      <div className="mr-10 flex flex-col border">
         <button className="px-4 py-2 active:scale-90" onClick={handleStart}>
           Start
         </button>
         <button className="px-4 py-2 active:scale-90" onClick={handleStop}>
           Stop
+        </button>
+        <button className="px-4 py-2 active:scale-90" onClick={handleRestart}>
+          Restart
         </button>
       </div>
       <div className="flex h-[800px] w-[402px] flex-wrap justify-center border">
