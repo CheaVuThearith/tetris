@@ -1,4 +1,5 @@
 "use client";
+import next from "next";
 import React, { useEffect, useRef, useState } from "react";
 
 const Game = () => {
@@ -12,7 +13,7 @@ const Game = () => {
   class block {
     pos: number[];
     constructor() {
-      this.pos = [14, 13, 15, 4];
+      this.pos = [14, 13, 4];
     }
     move = (direction: directionType) => {
       this.pos = this.pos.map(
@@ -35,36 +36,34 @@ const Game = () => {
     );
   };
   const doesNextBlockExist = (direction: directionType) => {
-    try {
-      return activeBlockRef.current.pos.some((el) => {
-        const nextBlock = el + directionalValues[direction];
-        if (direction === "ArrowLeft" && nextBlock.toString().slice(-1) === "9")
-          return true;
-        else if (
-          direction === "ArrowRight" &&
-          nextBlock.toString().slice(-1) === "0"
-        )
-          return true;
-        else
-          return emptyBlocksListRef.current[nextBlock].classList.contains(
-            "taken",
-          );
-      });
-    } catch {
-      return true;
-    }
+    return activeBlockRef.current.pos.some((el) => {
+      const nextBlock = el + directionalValues[direction];
+      const nextBlockRow = parseInt(nextBlock.toString().padStart(3, "0").slice(0, -1));
+      if (nextBlock > 199) return true;
+      if (direction === "ArrowLeft" && nextBlock.toString().slice(-1) === "9")
+        return true;
+      else if (
+        direction === "ArrowRight" &&
+        nextBlock.toString().slice(-1) === "0"
+      )
+        return true;
+      else {
+        return takenList[nextBlockRow].includes(nextBlock);
+      }
+    });
   };
   const createNewBlock = () => {
     activeBlockRef.current = new block();
     draw();
   };
+  let takenList: number[][] = new Array(20).fill(null).map(() => []);
   const registerBlock = () => {
     activeBlockRef.current.pos.forEach((block) => {
-      emptyBlocksListRef.current[block].classList.add("taken");
+      deleteFilledRow(block);
     });
   };
   const gameOver = () => {
-    if (emptyBlocksListRef.current[4].classList.contains("taken")) {
+    if (takenList[0].length >= 1) {
       console.log("gameOver");
       clearInterval(intervalIdRef.current);
       setScore("Game Over!");
@@ -84,14 +83,28 @@ const Game = () => {
       }
     }
   };
+
+  const deleteFilledRow = (block: number) => {
+    const row = parseInt(block.toString().padStart(3, "0").slice(0, -1));
+    takenList[row].push(block);
+    if (takenList[row].length === 10) {
+      takenList[row].forEach((block) => {
+        emptyBlocksListRef.current[block].classList.remove("blocked");
+        takenList[row] = [];
+      });
+    }
+  };
+
+  //TODO: add more blocks and score system
   const handleRestart = () => {
-    handleStop()
+    handleStop();
     emptyBlocksListRef.current.forEach((block) => {
-      block.classList.remove("taken", "blocked");
+      block.classList.remove("blocked");
+      takenList = new Array(20).fill(null).map(() => []);
     });
     setScore(0);
     createNewBlock();
-    handleStart()
+    handleStart();
   };
   const handleStart = () => {
     //add controls
@@ -109,7 +122,7 @@ const Game = () => {
   const handleStop = () => {
     clearInterval(intervalIdRef.current);
   };
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState<number | string>(0);
   const emptyBlocksListRef = useRef<HTMLDivElement[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout>();
   return (
@@ -119,7 +132,7 @@ const Game = () => {
           Start
         </button>
         <button className="px-4 py-2 active:scale-90" onClick={handleStop}>
-          Stop
+          Pause
         </button>
         <button className="px-4 py-2 active:scale-90" onClick={handleRestart}>
           Restart
