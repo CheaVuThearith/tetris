@@ -1,0 +1,3 @@
+current isnt being moved
+LIMIT TO BLOCK BEING BROKEN IS 3
+after deletiton above blocks gets moved down so it doesnt get detected

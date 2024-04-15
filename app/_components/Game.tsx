@@ -98,19 +98,23 @@ const Game = () => {
 
   const takenList = useRef<number[][]>(new Array(20).fill(null).map(() => []));
 
+  const undrawCanvas = () => {
+    takenList.current.forEach((list) => {
+      list.forEach((el) => {
+        emptyBlocksListRef.current[el].classList.remove("blocked");
+      });
+    });
+  };
   const moveBlocksDownAfterBreak = (row: number) => {
     //adds 10 to all blocks above the broken row
-    let rowsAboveBrokenRow = takenList.current
+    const rowsAboveBrokenRow = takenList.current
       .slice(0, row)
       .map((li) => li.map((el) => el + 10));
     const rowsBelowBrokenRow = takenList.current.slice(row + 1);
     takenList.current = [[], ...rowsAboveBrokenRow, ...rowsBelowBrokenRow];
-    emptyBlocksListRef.current.forEach((element) =>
-      element.classList.remove("blocked"),
-    );
   };
 
-  const handleRerender = () => {
+  const drawCanvas = () => {
     takenList.current.forEach((list) => {
       list.forEach((el) => {
         emptyBlocksListRef.current[el].classList.add("blocked");
@@ -118,35 +122,53 @@ const Game = () => {
     });
   };
   const scoring = () => {
-    setScore((s) => (s as number) + 100);
-  };
-
-  const deleteFilledRow = (block: number) => {
-    const row = parseInt(block.toString().padStart(3, "0").slice(0, -1));
-    takenList.current[row].push(block);
-    if (takenList.current[row].length === 10) {
-      takenList.current[row].forEach((block) => {
-        emptyBlocksListRef.current[block].classList.remove("blocked");
-      });
-      setTimeout(() => {
-        moveBlocksDownAfterBreak(row);
-        handleRerender();
-      }, 5);
-      scoring();
+    if (filledRows.current.length !== 0) {
+      const scoreToAdd =
+        Math.floor(
+          1.2 ** filledRows.current.length + filledRows.current.length,
+        ) * 50;
+      setScore((s) => (s as number) + scoreToAdd);
     }
+  };
+  const filledRows = useRef<number[]>([]);
+  const deleteFilledRow = () => {
+    filledRows.current.sort();
+    filledRows.current.forEach((row, index) => {
+      takenList.current[row] = [];
+      moveBlocksDownAfterBreak(row);
+    });
+    filledRows.current = [];
   };
 
   const registerBlock = () => {
     activeBlock.pos.forEach((block) => {
-      deleteFilledRow(block);
+      const row = parseInt(block.toString().padStart(3, "0").slice(0, -1));
+      takenList.current[row].push(block);
+      if (takenList.current[row].length === 10) {
+        filledRows.current.push(row);
+      }
+    });
+    scoring();
+    undrawCanvas();
+    deleteFilledRow();
+    drawCanvas();
+  };
+  const clearCanvas = () => {
+    emptyBlocksListRef.current.forEach((block) => {
+      block.classList.remove("blocked");
+      takenList.current = new Array(20).fill(null).map(() => []);
     });
   };
-
   const gameOver = () => {
     if (takenList.current[0].length >= 1) {
       clearInterval(intervalIdRef.current);
-      setScore("Game Over!");
       onkeydown = () => {};
+      clearCanvas()
+      undrawCanvas();
+      activeBlock.pos = [
+         82, 87, 122, 113, 104, 105, 116, 127,
+      ];
+      drawCurrentBlock();
     }
   };
 
@@ -163,7 +185,10 @@ const Game = () => {
           gameOver();
         }
       }
-    } else {
+    } else if (
+      !doesNextBlockExist("ArrowLeft") &&
+      !doesNextBlockExist("ArrowRight")
+    ) {
       rotateBlock90Degrees();
     }
   };
@@ -171,10 +196,7 @@ const Game = () => {
   //TODO: add more blocks
   const handleRestart = () => {
     handleStop();
-    emptyBlocksListRef.current.forEach((block) => {
-      block.classList.remove("blocked");
-      takenList.current = new Array(20).fill(null).map(() => []);
-    });
+    clearCanvas();
     setScore(0);
     createNewBlock();
     handleStart();
@@ -206,14 +228,12 @@ const Game = () => {
     }
     clearInterval(intervalIdRef.current);
   };
-
   const [score, setScore] = useState<number | string>(0);
   const emptyBlocksListRef = useRef<HTMLDivElement[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout>();
 
   return (
     <>
-    
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="mr-10 flex flex-col border">
           <button className="px-4 py-2 active:scale-90" onClick={handleStart}>
@@ -239,8 +259,7 @@ const Game = () => {
               }}
               key={index}
               className={`aspect-square size-10 border border-[#ffffff75]`}
-            >
-            </div>
+            >{index}</div>
           ))}
         </div>
         <div className=" ml-10 w-20">
