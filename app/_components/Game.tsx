@@ -259,7 +259,7 @@ const Game = () => {
               }}
               key={index}
               className={`aspect-square size-10 border border-[#ffffff75]`}
-            >{index}</div>
+            ></div>
           ))}
         </div>
         <div className=" ml-10 w-20">
