@@ -1,0 +1,3 @@
+When rowDeletes
+for the takenList
+    
