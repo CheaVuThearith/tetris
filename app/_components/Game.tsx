@@ -21,7 +21,8 @@ const Game = () => {
   class block {
     pos: number[];
     constructor() {
-      this.pos = Object.values(blockTypes)[Math.floor(Math.random() * 6)];
+      this.pos = [1, 2, 3, 4, 5, 6, 7, 8];
+      // Object.values(blockTypes)[Math.floor(Math.random() * 6)];
     }
     move = (direction: directionType) => {
       this.pos = this.pos.map(
@@ -125,8 +126,8 @@ const Game = () => {
     if (filledRows.current.length !== 0) {
       const scoreToAdd =
         Math.floor(
-          1.2 ** filledRows.current.length + filledRows.current.length,
-        ) * 50;
+          1.5 ** filledRows.current.length - 1 + filledRows.current.length,
+        ) * 100;
       setScore((s) => (s as number) + scoreToAdd);
     }
   };
@@ -163,11 +164,9 @@ const Game = () => {
     if (takenList.current[0].length >= 1) {
       clearInterval(intervalIdRef.current);
       onkeydown = () => {};
-      clearCanvas()
+      clearCanvas();
       undrawCanvas();
-      activeBlock.pos = [
-         82, 87, 122, 113, 104, 105, 116, 127,
-      ];
+      activeBlock.pos = [82, 87, 122, 113, 104, 105, 116, 127];
       drawCurrentBlock();
     }
   };
