@@ -21,8 +21,7 @@ const Game = () => {
   class block {
     pos: number[];
     constructor() {
-      this.pos = [1, 2, 3, 4, 5, 6, 7, 8];
-      // Object.values(blockTypes)[Math.floor(Math.random() * 6)];
+      this.pos = Object.values(blockTypes)[Math.floor(Math.random() * 6)];
     }
     move = (direction: directionType) => {
       this.pos = this.pos.map(
