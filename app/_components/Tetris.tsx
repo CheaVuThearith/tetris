@@ -232,7 +232,7 @@ const Game = () => {
 
   return (
     <>
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="mr-10 flex flex-col border">
           <button className="px-4 py-2 active:scale-90" onClick={handleStart}>
             Start

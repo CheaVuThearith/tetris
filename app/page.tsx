@@ -1,8 +1,7 @@
 import Image from "next/image";
-import Game from "./_components/Game";
+import Game from "./_components/Tetris";
 
 export default function Home() {
   return <>
-  <Game/>
   </>;
 }
