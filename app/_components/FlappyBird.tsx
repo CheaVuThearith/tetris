@@ -136,7 +136,11 @@ const FlappyBird = (props: Props) => {
     if (birdRef.current)
       birdRef.current.animate(
         { bottom: "48px" },
-        { duration: 200, fill: "forwards" },
+        {
+          duration: 500,
+          fill: "forwards",
+          easing: "cubic-bezier(.56,.17,0,.82)",
+        },
       );
     if (kfcRef.current) kfcRef.current.style.opacity = "100%";
     play = false;
@@ -193,7 +197,7 @@ const FlappyBird = (props: Props) => {
         <Image
           ref={kfcRef}
           src="/kfrc.png"
-          className="absolute opacity-0 bottom-0 left-[32.5%]"
+          className="absolute bottom-0 left-[32.5%] opacity-0"
           alt="kfc bucket"
           width={100}
           height={50}
