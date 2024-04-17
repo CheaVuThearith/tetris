@@ -11,7 +11,6 @@ const FlappyBird = (props: Props) => {
   const birdYRef = useRef(0);
   const gravity = () => {
     if (birdRef.current) {
-      const birdProps = birdRef.current.getBoundingClientRect();
       if (birdYRef.current > 0) {
         birdYRef.current--;
         birdRef.current.animate(
@@ -23,10 +22,14 @@ const FlappyBird = (props: Props) => {
           },
         );
       }
-      requestAnimationFrame(gravity);
+      if (typeof window !== "undefined") {
+        requestAnimationFrame(gravity);
+      }
     }
   };
-  requestAnimationFrame(gravity);
+  if (typeof window !== "undefined") {
+    requestAnimationFrame(gravity);
+  }
   class pipe {
     randomYPos: number;
     XPos: number;
@@ -88,8 +91,9 @@ const FlappyBird = (props: Props) => {
           );
           this.topActualPos = this.top.getBoundingClientRect();
           this.bottomActualPos = this.bottom.getBoundingClientRect();
-
-          requestAnimationFrame(this.move);
+          if (typeof window !== 'undefined') {
+            requestAnimationFrame(this.move);
+          }
         } else {
           this.removeFromDom();
         }
@@ -117,7 +121,7 @@ const FlappyBird = (props: Props) => {
   const playButtonRef = useRef<HTMLButtonElement>(null);
   const intervalIdRef = useRef<NodeJS.Timeout>();
   const gameOver = () => {
-    onkeydown = (e) => {};
+    onkeydown = () => {};
     play = false;
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
     clearInterval(intervalIdRef.current);
