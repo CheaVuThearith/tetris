@@ -1,24 +1,27 @@
-rotateBlock90Degrees = (block) => {
-      // Convert the block indices to row and column indices
-      block = block.map((i) => [Math.floor(i / 10), i % 10]);
+const element = document.getElementById("some-element-you-want-to-animate");
+let start, previousTimeStamp;
+let done = false;
 
-      // Move the block to the origin
-      let minRow = Math.min(...block.map(([i, j]) => i));
-      let minCol = Math.min(...block.map(([i, j]) => j));
-      block = block.map(([i, j]) => [i - minRow, j - minCol]);
+function step(timeStamp) {
+  if (start === undefined) {
+    start = timeStamp;
+  }
+  const elapsed = timeStamp - start;
 
-      // Rotate the block
-      block = block.map(([i, j]) => [j, i]);
+  if (previousTimeStamp !== timeStamp) {
+    // Math.min() is used here to make sure the element stops at exactly 200px
+    const count = Math.min(0.1 * elapsed, 200);
+    element.style.transform = `translateX(${count}px)`;
+    if (count === 200) done = true;
+  }
 
-      // Reverse the row indices
-      let maxRow = Math.max(...block.map(([i, j]) => i));
-      block = block.map(([i, j]) => [maxRow - i, j]);
+  if (elapsed < 2000) {
+    // Stop the animation after 2 seconds
+    previousTimeStamp = timeStamp;
+    if (!done) {
+      window.requestAnimationFrame(step);
+    }
+  }
+}
 
-      // Move the block back to its original position
-      block = block.map(([i, j]) => [i + minRow, j + minCol]);
-
-      // Convert the row and column indices back to block indices
-      block = block.map(([i, j]) => i * 10 + j);
-      return block
-    };
-    console.log(rotateBlock90Degrees([13,14,15]))
+window.requestAnimationFrame(step);
