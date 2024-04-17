@@ -60,7 +60,7 @@ const FlappyBird = (props: Props) => {
       this.bottomActualPos = this.bottom.getBoundingClientRect();
       this.top.style.cssText = `
       height: ${this.topPos}px;
-      width: 100px;
+      width: 75px;
       top: 0px;
       right:-100px;
       position: absolute;
@@ -68,7 +68,7 @@ const FlappyBird = (props: Props) => {
       `;
       this.bottom.style.cssText = `
       height: ${this.botPos}px;
-      width: 100px;
+      width: 75px;
       bottom: 0px;
       right:-100px;
       position: absolute;
@@ -180,7 +180,7 @@ const controls = () => {
         </button>
         <div
           ref={birdRef}
-          className="absolute bottom-0 left-96 size-12 rounded-full bg-yellow-300 after:absolute after:-right-2 after:top-1/2 after:size-3 after:bg-orange-500"
+          className="absolute bottom-0 left-1/3 size-12 rounded-full bg-yellow-300 after:absolute after:-right-2 after:top-1/2 after:size-3 after:bg-orange-500"
         ></div>
       </div>
     </>
