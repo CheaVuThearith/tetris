@@ -1,4 +1,5 @@
 "use client";
+import { secureHeapUsed } from "crypto";
 import { userAgentFromString } from "next/server";
 import React, { useEffect, useRef } from "react";
 
@@ -9,15 +10,25 @@ const FlappyBird = (props: Props) => {
   const birdRef = useRef<HTMLDivElement>(null);
   const pipeContainerRef = useRef<HTMLDivElement>(null);
   const birdYRef = useRef(0);
+  const jumped = useRef(0) 
   const gravity = () => {
     if (birdRef.current) {
       if (birdYRef.current > 0) {
-        birdYRef.current--;
+        if(jumped.current<100){
+          birdYRef.current--;
+          jumped.current++
+          console.log("delay")
+        }
+        else {
+          console.log(jumped.current)
+          console.log("real")
+          birdYRef.current = birdYRef.current - 3 
+        }
         birdRef.current.animate(
           { bottom: `${birdYRef.current}px` },
           {
             fill: "forwards",
-            duration: 300,
+            duration: 1000  ,
             easing: "cubic-bezier(.56,.17,0,.82)",
           },
         );
@@ -126,17 +137,21 @@ const FlappyBird = (props: Props) => {
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
     clearInterval(intervalIdRef.current);
   };
-
+const controls = () => {
+  if (birdRef.current) {
+    jumped.current = 0
+    birdRef.current.animate(
+      { bottom: `${Math.min(birdYRef.current)}px` },
+      { fill: "forwards", duration: 1000 },
+    );
+    birdYRef.current = Math.min(birdYRef.current + 125, window.innerHeight);
+  }
+};
   const handlePlay = () => {
-    onkeydown = (e) => {
-      if ((e.key === "ArrowUp" || e.key === " ") && birdRef.current) {
-        birdRef.current.animate(
-          { bottom: `${Math.min(birdYRef.current)}px` },
-          { fill: "forwards", duration: 300 },
-        );
-        birdYRef.current = Math.min(birdYRef.current + 100, window.innerHeight);
-      }
-    };
+    window.ontouchstart = ()=>controls()
+    onkeydown = (e)=>{
+      if (e.key === "ArrowUp" || e.key === " ")controls() 
+    }
     play = true;
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
