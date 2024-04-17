@@ -91,7 +91,7 @@ const FlappyBird = (props: Props) => {
     move = () => {
       if (play) {
         if (this.XPos < window.innerWidth) {
-          this.XPos++;
+          this.XPos = this.XPos + 2;
           this.top.animate(
             { right: `${this.XPos}px` },
             { fill: "forwards", duration: 300 },
