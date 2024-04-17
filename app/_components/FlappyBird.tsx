@@ -1,5 +1,6 @@
 "use client";
 import { secureHeapUsed } from "crypto";
+import Image from "next/image";
 import { userAgentFromString } from "next/server";
 import React, { useEffect, useRef } from "react";
 
@@ -10,28 +11,26 @@ const FlappyBird = (props: Props) => {
   const birdRef = useRef<HTMLDivElement>(null);
   const pipeContainerRef = useRef<HTMLDivElement>(null);
   const birdYRef = useRef(0);
-  const jumped = useRef(0) 
+  const jumped = useRef(0);
   const gravity = () => {
     if (birdRef.current) {
       if (birdYRef.current > 0) {
-        if(jumped.current<50){
+        if (jumped.current < 50) {
           birdYRef.current--;
-          jumped.current++
-          console.log("delay")
+          jumped.current++;
+        } else {
+          birdYRef.current = birdYRef.current - 5;
         }
-        else {
-          console.log(jumped.current)
-          console.log("real")
-          birdYRef.current = birdYRef.current - 5 
+        if (play) {
+          birdRef.current.animate(
+            { bottom: `${birdYRef.current}px` },
+            {
+              fill: "forwards",
+              duration: 1000,
+              easing: "cubic-bezier(.56,.17,0,.82)",
+            },
+          );
         }
-        birdRef.current.animate(
-          { bottom: `${birdYRef.current}px` },
-          {
-            fill: "forwards",
-            duration: 1000  ,
-            easing: "cubic-bezier(.56,.17,0,.82)",
-          },
-        );
       }
       if (typeof window !== "undefined") {
         requestAnimationFrame(gravity);
@@ -102,7 +101,7 @@ const FlappyBird = (props: Props) => {
           );
           this.topActualPos = this.top.getBoundingClientRect();
           this.bottomActualPos = this.bottom.getBoundingClientRect();
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             requestAnimationFrame(this.move);
           }
         } else {
@@ -129,29 +128,38 @@ const FlappyBird = (props: Props) => {
       }
     };
   }
+  const kfcRef = useRef<HTMLImageElement>(null);
   const playButtonRef = useRef<HTMLButtonElement>(null);
   const intervalIdRef = useRef<NodeJS.Timeout>();
   const gameOver = () => {
     onkeydown = () => {};
+    if (birdRef.current)
+      birdRef.current.animate(
+        { bottom: "48px" },
+        { duration: 200, fill: "forwards" },
+      );
+    if (kfcRef.current) kfcRef.current.style.opacity = "100%";
     play = false;
+
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
     clearInterval(intervalIdRef.current);
   };
-const controls = () => {
-  if (birdRef.current) {
-    jumped.current = 0
-    birdRef.current.animate(
-      { bottom: `${Math.min(birdYRef.current)}px` },
-      { fill: "forwards", duration: 1000 },
-    );
-    birdYRef.current = Math.min(birdYRef.current + 125, window.innerHeight);
-  }
-};
-  const handlePlay = () => {
-    window.ontouchstart = ()=>controls()
-    onkeydown = (e)=>{
-      if (e.key === "ArrowUp" || e.key === " ")controls() 
+  const controls = () => {
+    if (birdRef.current) {
+      jumped.current = 0;
+      birdRef.current.animate(
+        { bottom: `${Math.min(birdYRef.current)}px` },
+        { fill: "forwards", duration: 1000 },
+      );
+      birdYRef.current = Math.min(birdYRef.current + 125, window.innerHeight);
     }
+  };
+  const handlePlay = () => {
+    if (kfcRef.current) kfcRef.current.style.opacity = "0%";
+    window.ontouchstart = () => controls();
+    onkeydown = (e) => {
+      if (e.key === "ArrowUp" || e.key === " ") controls();
+    };
     play = true;
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
@@ -182,6 +190,14 @@ const controls = () => {
           ref={birdRef}
           className="absolute bottom-0 left-1/3 size-12 rounded-full bg-yellow-300 after:absolute after:-right-2 after:top-1/2 after:size-3 after:bg-orange-500"
         ></div>
+        <Image
+          ref={kfcRef}
+          src="/kfrc.png"
+          className="absolute opacity-0 bottom-0 left-[32.5%]"
+          alt="kfc bucket"
+          width={100}
+          height={50}
+        />
       </div>
     </>
   );
