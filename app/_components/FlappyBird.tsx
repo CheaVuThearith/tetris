@@ -14,7 +14,7 @@ const FlappyBird = (props: Props) => {
   const gravity = () => {
     if (birdRef.current) {
       if (birdYRef.current > 0) {
-        if(jumped.current<100){
+        if(jumped.current<50){
           birdYRef.current--;
           jumped.current++
           console.log("delay")
@@ -22,7 +22,7 @@ const FlappyBird = (props: Props) => {
         else {
           console.log(jumped.current)
           console.log("real")
-          birdYRef.current = birdYRef.current - 3 
+          birdYRef.current = birdYRef.current - 5 
         }
         birdRef.current.animate(
           { bottom: `${birdYRef.current}px` },
