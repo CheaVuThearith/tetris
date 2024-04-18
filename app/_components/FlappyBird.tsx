@@ -40,7 +40,7 @@ const FlappyBird = (props: Props) => {
   if (typeof window !== "undefined") {
     requestAnimationFrame(gravity);
   }
-  const [score, setScore] = useState(0);
+  let score = 0;
   class pipe {
     randomYPos: number;
     XPos: number;
@@ -127,22 +127,17 @@ const FlappyBird = (props: Props) => {
             (birdHitTopPipe || birdHitBottomPipe)
           ) {
             gameOver();
-          } else if (
-            Math.floor(this.bottomActualPos.right) <= birdPos.left
-          ) {
+          } else if (Math.floor(this.bottomActualPos.right) <= birdPos.left) {
             this.scored = true;
-            setScore((s) => s + 1);
+            score++;
+            if (scoreRef.current)
+              scoreRef.current.textContent = `Score: ${score}`;
           }
-          //  else if (
-          //   Math.floor(this.bottomActualPos.left) <= birdPos.right &&
-          //   Math.floor(this.bottomActualPos.right) > birdPos.left &&
-          //   Math.floor(birdPos.bottom) >= Math.floor(this.bottomActualPos.top)
-          // ) {
-          //   gameOver();
         }
       }
     };
   }
+  const scoreRef = useRef<HTMLHeadingElement>(null);
   const kfcRef = useRef<HTMLImageElement>(null);
   const playButtonRef = useRef<HTMLButtonElement>(null);
   const intervalIdRef = useRef<NodeJS.Timeout>();
@@ -180,7 +175,7 @@ const FlappyBird = (props: Props) => {
       if (e.key === "ArrowUp" || e.key === " ") controls();
     };
     play = true;
-    setScore(0);
+    score = 0;
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
     }
@@ -199,7 +194,10 @@ const FlappyBird = (props: Props) => {
           ref={pipeContainerRef}
           className="absolute inset-0 flex justify-end "
         ></div>
-        <h1 className="absolute left-1/2 top-[10%] -translate-x-1/2 transform text-3xl">
+        <h1
+          ref={scoreRef}
+          className="absolute left-1/2 top-[10%] -translate-x-1/2 transform text-3xl"
+        >
           Score: {score}
         </h1>
         <button
