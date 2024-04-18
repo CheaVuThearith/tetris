@@ -176,6 +176,7 @@ const FlappyBird = (props: Props) => {
     };
     play = true;
     score = 0;
+    if (scoreRef.current) scoreRef.current.textContent = `Score: ${score}`;
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
     }
