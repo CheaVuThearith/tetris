@@ -111,7 +111,7 @@ const FlappyBird = (props: Props) => {
           this.removeFromDom();
         }
 
-        if (birdRef.current) {
+        if (birdRef.current && !this.scored) {
           const birdPos = birdRef.current.getBoundingClientRect();
           const birdReachedPipeHorizontally =
             Math.floor(this.topActualPos.left) <= birdPos.right;
@@ -128,8 +128,7 @@ const FlappyBird = (props: Props) => {
           ) {
             gameOver();
           } else if (
-            Math.floor(this.bottomActualPos.right) <= birdPos.left &&
-            !this.scored
+            Math.floor(this.bottomActualPos.right) <= birdPos.left
           ) {
             this.scored = true;
             setScore((s) => s + 1);
