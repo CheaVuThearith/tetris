@@ -2,7 +2,7 @@
 import { secureHeapUsed } from "crypto";
 import Image from "next/image";
 import { userAgentFromString } from "next/server";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type Props = {};
 
@@ -40,6 +40,7 @@ const FlappyBird = (props: Props) => {
   if (typeof window !== "undefined") {
     requestAnimationFrame(gravity);
   }
+  const [score, setScore] = useState(0);
   class pipe {
     randomYPos: number;
     XPos: number;
@@ -49,6 +50,7 @@ const FlappyBird = (props: Props) => {
     bottom: HTMLDivElement;
     topActualPos: DOMRect;
     bottomActualPos: DOMRect;
+    scored: boolean;
     constructor() {
       this.randomYPos = Math.floor(Math.random() * (window.innerHeight * 0.8));
       this.topPos = window.innerHeight - this.randomYPos - 200;
@@ -57,6 +59,7 @@ const FlappyBird = (props: Props) => {
       this.bottom = document.createElement("div");
       this.topActualPos = this.top.getBoundingClientRect();
       this.bottomActualPos = this.bottom.getBoundingClientRect();
+      this.scored = false;
       this.top.style.cssText = `
       height: ${this.topPos}px;
       width: 75px;
@@ -110,20 +113,33 @@ const FlappyBird = (props: Props) => {
 
         if (birdRef.current) {
           const birdPos = birdRef.current.getBoundingClientRect();
-          if (
-            Math.floor(this.topActualPos.left) <= birdPos.right &&
+          const birdReachedPipeHorizontally =
+            Math.floor(this.topActualPos.left) <= birdPos.right;
+          const birdHitTopPipe =
             Math.floor(this.topActualPos.right) > birdPos.left &&
-            Math.floor(birdPos.top) <= Math.floor(this.topActualPos.bottom)
-          ) {
-            gameOver();
-          }
-          if (
-            Math.floor(this.bottomActualPos.left) <= birdPos.right &&
+            Math.floor(birdPos.top) <= Math.floor(this.topActualPos.bottom);
+          const birdHitBottomPipe =
             Math.floor(this.bottomActualPos.right) > birdPos.left &&
-            Math.floor(birdPos.bottom) >= Math.floor(this.bottomActualPos.top)
+            Math.floor(birdPos.bottom) >= Math.floor(this.bottomActualPos.top);
+
+          if (
+            birdReachedPipeHorizontally &&
+            (birdHitTopPipe || birdHitBottomPipe)
           ) {
             gameOver();
+          } else if (
+            Math.floor(this.bottomActualPos.right) <= birdPos.left &&
+            !this.scored
+          ) {
+            this.scored = true;
+            setScore((s) => s + 1);
           }
+          //  else if (
+          //   Math.floor(this.bottomActualPos.left) <= birdPos.right &&
+          //   Math.floor(this.bottomActualPos.right) > birdPos.left &&
+          //   Math.floor(birdPos.bottom) >= Math.floor(this.bottomActualPos.top)
+          // ) {
+          //   gameOver();
         }
       }
     };
@@ -165,6 +181,7 @@ const FlappyBird = (props: Props) => {
       if (e.key === "ArrowUp" || e.key === " ") controls();
     };
     play = true;
+    setScore(0);
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
     }
@@ -183,6 +200,9 @@ const FlappyBird = (props: Props) => {
           ref={pipeContainerRef}
           className="absolute inset-0 flex justify-end "
         ></div>
+        <h1 className="absolute left-1/2 top-[10%] -translate-x-1/2 transform text-3xl">
+          Score: {score}
+        </h1>
         <button
           ref={playButtonRef}
           onClick={handlePlay}
