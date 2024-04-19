@@ -149,7 +149,7 @@ const FlappyBird = (props: Props) => {
         {
           duration: 500,
           fill: "forwards",
-          easing: "cubic-bezier(.56,.17,0,.82)",
+          easing: "cubic-bezier(.56,.20,0,.82)",
         },
       );
     if (kfcRef.current) kfcRef.current.style.opacity = "100%";
