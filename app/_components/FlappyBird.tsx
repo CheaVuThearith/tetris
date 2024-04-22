@@ -155,6 +155,9 @@ const FlappyBird = (props: Props) => {
     if (kfcRef.current) kfcRef.current.style.opacity = "100%";
     play = false
 
+
+    
+
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
     clearInterval(intervalIdRef.current);
   };
