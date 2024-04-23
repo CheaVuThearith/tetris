@@ -156,8 +156,6 @@ const FlappyBird = (props: Props) => {
     play = false
 
 
-    
-
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
     clearInterval(intervalIdRef.current);
   };
