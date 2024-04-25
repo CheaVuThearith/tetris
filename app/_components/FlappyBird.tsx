@@ -1,5 +1,6 @@
 "use client";
 import { secureHeapUsed } from "crypto";
+import { Biryani } from "next/font/google";
 import Image from "next/image";
 import { userAgentFromString } from "next/server";
 import React, { useEffect, useRef, useState } from "react";
@@ -10,36 +11,24 @@ const FlappyBird = (props: Props) => {
   let play = false;
   const birdRef = useRef<HTMLDivElement>(null);
   const pipeContainerRef = useRef<HTMLDivElement>(null);
-  const birdYRef = useRef(0);
-  const jumped = useRef(0);
+  let birdY = 0;
   const gravity = () => {
     if (birdRef.current) {
-      if (birdYRef.current > 0) {
-        if (jumped.current < 50) {
-          birdYRef.current--;
-          jumped.current++;
-        } else {
-          birdYRef.current = birdYRef.current - 5;
-        }
+      if (birdY > 0) {
+        birdY = birdY - 25
         if (play) {
           birdRef.current.animate(
-            { bottom: `${birdYRef.current}px` },
+            { bottom: `${birdY}px` },
             {
               fill: "forwards",
-              duration: 1000,
-              easing: "cubic-bezier(.56,.17,0,.82)",
+              duration: 300, delay:0
             },
           );
         }
       }
-      if (typeof window !== "undefined") {
-        requestAnimationFrame(gravity);
-      }
     }
   };
-  if (typeof window !== "undefined") {
-    requestAnimationFrame(gravity);
-  }
+
   let score = 0;
   class pipe {
     randomYPos: number;
@@ -91,7 +80,7 @@ const FlappyBird = (props: Props) => {
       }
     };
     move = () => {
-      if (play) {
+      if (play && pipeContainerRef.current) {
         if (this.XPos < window.innerWidth) {
           this.XPos = this.XPos + 2;
           this.top.animate(
@@ -110,8 +99,12 @@ const FlappyBird = (props: Props) => {
         } else {
           this.removeFromDom();
         }
-
-        if (birdRef.current && !this.scored) {
+        if (
+          birdRef.current &&
+          !this.scored &&
+          (this.top == pipeContainerRef.current.firstChild ||
+            this.bottom == pipeContainerRef.current.firstChild)
+        ) {
           const birdPos = birdRef.current.getBoundingClientRect();
           const birdReachedPipeHorizontally =
             Math.floor(this.topActualPos.left) <= birdPos.right;
@@ -140,8 +133,10 @@ const FlappyBird = (props: Props) => {
   const scoreRef = useRef<HTMLHeadingElement>(null);
   const kfcRef = useRef<HTMLImageElement>(null);
   const playButtonRef = useRef<HTMLButtonElement>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout>();
+  const pipeSpawnInterval = useRef<NodeJS.Timeout>();
+  const gravityInterval = useRef<NodeJS.Timeout>();
   const gameOver = () => {
+    clearInterval(gravityInterval.current);
     onkeydown = () => {};
     if (birdRef.current)
       birdRef.current.animate(
@@ -153,23 +148,22 @@ const FlappyBird = (props: Props) => {
         },
       );
     if (kfcRef.current) kfcRef.current.style.opacity = "100%";
-    play = false
-
+    play = false;
 
     if (playButtonRef.current) playButtonRef.current.style.display = "block";
-    clearInterval(intervalIdRef.current);
+    clearInterval(pipeSpawnInterval.current);
   };
   const controls = () => {
     if (birdRef.current) {
-      jumped.current = 0;
+      birdY = Math.min(birdY + 125, window.innerHeight);
       birdRef.current.animate(
-        { bottom: `${Math.min(birdYRef.current)}px` },
-        { fill: "forwards", duration: 1000 },
+        { bottom: `${birdY}px` },
+        { fill: "forwards", duration: 300 },
       );
-      birdYRef.current = Math.min(birdYRef.current + 125, window.innerHeight);
     }
   };
   const handlePlay = () => {
+    gravityInterval.current = setInterval(gravity, 100);
     if (kfcRef.current) kfcRef.current.style.opacity = "0%";
     window.ontouchstart = () => controls();
     onkeydown = (e) => {
@@ -177,12 +171,13 @@ const FlappyBird = (props: Props) => {
     };
     play = true;
     score = 0;
+    birdY = 0;
     if (scoreRef.current) scoreRef.current.textContent = `Score: ${score}`;
     if (playButtonRef.current) {
       if (playButtonRef.current) playButtonRef.current.style.display = "none";
     }
     if (pipeContainerRef.current) pipeContainerRef.current.innerHTML = "";
-    intervalIdRef.current = setInterval(generateNewPipe, 3000);
+    pipeSpawnInterval.current = setInterval(generateNewPipe, 3000);
   };
   const generateNewPipe = () => {
     const newPipe = new pipe();
